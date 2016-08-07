@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style media="screen">
+        #container {
+            margin: 20px;
+            width: 200px;
+            height: 200px;
+            position: relative;
+            /*align: center;*/
+            }
+    </style>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
+    <script src="progressbar.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="easyChart.js"></script>
+    <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <input id = "statt" type="text">
+  <button type="button" name="button" onclick="changeStat()">submit</button>
+      <!-- <div id="container" style="cursor:pointer;" id = "reserve" onclick="func()">
+      </div>
+      <div class="area">
+        <div id="box1" disabled style="font-size:800%">
+
+        </div>
+        <div id="box2" disabled style="font-size:800%">
+
+
+
+        </div>
+        <div id="box3" disabled style="font-size:800%">
+
+
+
+        </div>
+      </div> -->
+</body>
+<script src="/tree.js"></script>
+<script type="text/javascript">
+  var dataArray = [];
+  var dataArray2 = [];
+  var light = 999;
+  var temp = 0;
+  var pressure = 0;
+  var attitude = 0;
+  var moisture = 999;
+  var isNew = "NaN";
+  var plantType = 0;
+  var day = [];
+  var daydayday = [0,0,0,0,0,0,0,0];
+  var timer = 0;
+  var date = new Date();
+  var weekDay = date.getDay();
+  var hour = date.getHours();
+  var isWatering = false;
+  var sendToServo = 0;
+  var carState = 0;
+  var webState1 = 0;
+  var webState2 = 0;
+  var webState3 = 0;
+  var suggest = "";
+  var isCarOut = false;
+  var stat = 0;
+  function changeStat()
+  {
+    stat = $('#statt').val();
+    setTextWaring(stat);
+    sendToWeb();
+  }
+  setInterval(function() {
+    weekDay = date.getDay();
+    hour = date.getHours();
+    sendToServo = 0;
+    carState = 0;
+    $.ajax({
+      url:'http://10.32.176.4/X_E_XX'
+    })
+    .done(function(data) {
+      dataArray = data.split(":");
+      console.log(dataArray);
+    })
+    $.ajax({
+      url:'http://10.32.176.4/X_E_XX2'
+    })
+    .done(function(data) {
+      console.log(data);
+      dataArray2 = data.split(":");
+    })
+    if(isWatering) isWatering = false;
+    if(dataArray[0] === "A")
+    {
+      // console.log(555);
+      if(isNew!=dataArray[1])
+      {
+        convertData();
+        analysis();
+        isNew = dataArray[1];
+      }
+    }
+    if(dataArray2[0] === 'B')
+    {
+      convertData2();
+      getData();
+    }
+    if((temp > 32 || light < 400))
+    {
+      carState = 2;
+      isCarOut = false;
+      $.ajax({
+        url:'http://10.32.176.4/X_E_XX/B:2:0'
+      })
+    }
+    else {
+      carState = 0;
+      isCarOut = false;
+      $.ajax({
+        url:'http://10.32.176.4/X_E_XX/B:0:0'
+      })
+    }
+    if(moisture < 300)
+    {
+      webState2 = 1;
+      setTextWaring(1024);
+    }
+    else
+    {
+      webState2 = 0;
+      setTextWaring(0);
+    }
+    if(temp > 32)webState3 = 1;
+    else webState3 = 0;
+    sendToMCU();
+    sendToWeb();
+
+  },5000);
+  function convertData()
+  {
+    light = parseFloat(dataArray[2])/100;
+    temp = parseFloat(dataArray[3])/100;
+    pressure = parseFloat(dataArray[4])/100;
+    attitude = parseFloat(dataArray[5])/100;
+    moisture = parseFloat(dataArray[6])/100;
+     console.log(light);
+  }
+  function convertData2()
+  {
+    plantType = parseInt(dataArray2[1]);
+    day = dataArray2[2].split(',');
+    for(var i=0;i<day.length-1;i++)
+    {
+      daydayday[parseInt(day[i])] = 1;
+    }
+    timer = parseInt(dataArray2[3]);
+    // console.log(dataArray2);
+  }
+  function analysis()
+  {
+    // findStatus(plantType,temp,moisture);
+    setTextWaring(stat);
+    console.log(stat);
+    if(moisture > 800) webState2 = 1;
+    else webState2 = 0;
+    if(temp > 32)webState3 = 1;
+    else webState3 = 0;
+    //console.log(suggestText);
+  }
+  function getData()
+  {
+    // if(daydayday[weekDay]=== 1 && hour === 7 && isWatering === false )
+    if(isWatering === false)
+    {
+      calculateTime();
+      isWatering = true;
+      webState1 = 1;
+    }
+    else {
+      webState1 = 0;
+    }
+    // console.log(555);
+    if(temp < 32 && hour < 12 && light > 300 && isCarOut === false)
+    {
+      carState = 1;
+      isCarOut = true;
+    }
+    else if((tmp > 32 || hour > 12 || light < 300))
+    {
+      carState = 2;
+      isCarOut = false;
+      $.ajax({
+        url:'http://10.32.176.4/X_E_XX/B:2:0'
+      })
+    }
+    else carState = 0;
+  }
+  function calculateTime()
+  {
+    //  sendToServo DONE here!!!!
+    sendToServo = Math.round((timer)*1000);
+  }
+  function sendToMCU()
+  {
+    // $.ajax({
+      // url:'http://10.32.176.4/X_E_XX/'+'B:'+carState+':'+sendToServo
+    // })
+  }
+  function sendToWeb()
+  {
+    $.ajax({
+       url:'http://10.32.176.4/X_E_XX2/'+'A:'+webState1+':'+webState2+':'+webState3+':'+suggestText+'/set'
+    })
+    // $.ajax({
+    //    url:'http://10.32.176.4/X_E_XX/'+'C:'+suggestText
+    // })
+    .done(function(data) {
+      console.log(suggestText);
+    })
+  }
+</script>
+
+</html>

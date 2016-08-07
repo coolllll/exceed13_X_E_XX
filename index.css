@@ -1,0 +1,46 @@
+.area{
+  margin-top: 300px;
+  position: fixed;;
+  text-align: center;
+}
+
+#box1{
+  position: fixed;;
+  left: 5%;
+  top: 75%;
+  width: 150px;
+  height: 70px;
+  color: rgba(113,113,0.5);
+  /*border-style: solid;*/
+  /*background-color: white;*/
+   /*background-color: transparent;*/
+}
+#box2{
+  position: fixed;;
+  left: 45%;
+  top: 75%;
+  width: 150px;
+  height: 70px;
+  color: rgba(113,113,0.5);
+  /*border-style: solid;*/
+  /*background-color: white;*/
+}
+#box3{
+  position: fixed;;;
+  left: 75%;
+  top: 40%;
+  width: 300px;
+  height: 300px;
+  color: rgba(113,113,0.5);
+  /*border-style: solid;*/
+  /*background-color: white;*/
+
+}
+body{
+  /*height: 700px;*/
+  /*background-image: url("pic/neww.png");*/
+  	/*background-attachment: fixed;*/
+    background-size: auto;
+    background-repeat: no-repeat;
+  background-color: #141414;
+}
