@@ -57,9 +57,7 @@ function findStatus(type, temp, water) {
 }
 
 function setTextWaring(status) {
-    if (fine)
-        suggestText = "Your plant is fine normal giving water and normal tempurature.";
-    else if (dead)
+    if (dead)
         suggestText = "Your's plant might died from this bad enviroment.";
     else if (water && light)
         suggestText = "Need a lot of water and light.";
@@ -77,4 +75,6 @@ function setTextWaring(status) {
         suggestText = "Now it's no light need some lightfor growing.";
     else if (noLight)
         suggestText = "Your's plant get a lot of light it may die from high tempurature.";
+    else
+        suggestText = "Your plant is fine normal giving water and normal tempurature.";
 }
